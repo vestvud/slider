@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>slider</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="style.css"></link>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script src="slider.js"></script>
+</head>
+<body>
+	<div class="b-slider j-slider">
+        <a href="#" class="b-mainNewsRubric">
+            <img src="fecher.png" alt=""/>
+            <div class="b-mainNewsRubric__wrapper b-mainNewsRubric__wrapper_higher">
+                <div class="b-rubricName">Главная</div>
+                <p class="b-mainNewsRubric__head b-mainNewsRubric__head_higher">Слайд0</p>
+            </div>
+        </a>
+        <a href="#" class="b-mainNewsRubric">
+            <img src="fecher.png" alt=""/>
+            <div class="b-mainNewsRubric__wrapper b-mainNewsRubric__wrapper_higher">
+                <div class="b-rubricName">Кино</div>
+                <p class="b-mainNewsRubric__head b-mainNewsRubric__head_higher">Слайд1</p>
+            </div>
+        </a>
+        <a href="#" class="b-mainNewsRubric">
+            <img src="fecher.png" alt=""/>
+            <div class="b-mainNewsRubric__wrapper b-mainNewsRubric__wrapper_higher">
+                <div class="b-rubricName">Театр</div>
+                <p class="b-mainNewsRubric__head b-mainNewsRubric__head_higher">Слайд2</p>
+            </div>
+        </a>
+        <a href="#" class="b-mainNewsRubric">
+            <img src="fecher.png" alt=""/>
+            <div class="b-mainNewsRubric__wrapper b-mainNewsRubric__wrapper_higher">
+                <div class="b-rubricName">Музыка</div>
+                <p class="b-mainNewsRubric__head b-mainNewsRubric__head_higher">Слайд3</p>
+            </div>
+        </a>
+    </div>
+
+    <script>
+    	$(document).ready(function(){
+            dotes = new Dotes(".j-dotes");
+            slider = new Slider(".j-slider", {
+                namespace: "slider",
+                cssNamespace: "slider",
+                animate: "flipped"
+            });
+        });
+    </script>
+
+</body>
+</html>
+

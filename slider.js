@@ -17,8 +17,6 @@ var Slider = (function(){
         this.$currentItem = null;
         this.currentItemId = null;
         this.$nextItem  = null;
-        this.nextItemId = null;
-        this.arrItemsStack = [];
 
         this.$lenta = null;
         this.next = "";
@@ -58,10 +56,10 @@ var Slider = (function(){
 
         var contentHtml = this.$container.html(),
             tmpl = '<div class="b-' + cssns + '__content">' +
-                        '<div class="b-lenta j-lenta">' +
-                            contentHtml +
-                        '</div>' +
-                    '</div>' +
+                '<div class="b-lenta j-lenta">' +
+                contentHtml +
+                '</div>' +
+                '</div>' +
                 '<div class="b-'+ cssns+ '__arrow b-' + cssns + '__arrow_left j-prev"></div>' +
                 '<div class="b-' + cssns +'__arrow b-' + cssns + '__arrow_right j-next"></div>';
 
@@ -118,36 +116,39 @@ var Slider = (function(){
         var idNext,
             self = this;
         if (type === "forward") {
-            this.currentItemId >= this.itemsLength - 1 ? idNext = 0 : idNext = this.currentItemId + 1;            
+            this.currentItemId >= this.itemsLength - 1 ? idNext = 0 : idNext = this.currentItemId + 1;
         } else if (type === "backward") {
             this.currentItemId <= 0 ? idNext = this.itemsLength - 1 : idNext = this.currentItemId - 1;
         } else {
             idNext = type;
         }
 
+        this.findNextItem(idNext);
+        this.animate(type, idNext);
+    };
+
+    Slider.prototype.findNextItem = function(idNext){
+        var self = this;
         this.$items.each(function(i, elem){
             var $elem = $(elem),
                 elemId = $elem.data("id");
 
             if ( idNext === elemId ) {
                 self.$nextItem  = $elem;
-                self.nextItemId = elemId;
             }
         });
+    };
 
-        this.animate(type, idNext, self.$nextItem);
-    }
-
-    Slider.prototype.animate = function(type, idNext, $nextItem) {
+    Slider.prototype.animate = function(type, idNext) {
         if (this._options.animate === "opacity") {
             this.animateOpacity(idNext);
         } else {
-            this.animateFlipped(type, idNext, $nextItem);
+            this.animateFlipped(type, idNext);
         }
     };
 
-    Slider.prototype.animateFlipped = function(type, idNext, $nextItem) {
-        var left = $nextItem.width(),
+    Slider.prototype.animateFlipped = function(type, idNext) {
+        var left = this.$nextItem.width(),
             self = this,
             first = this.$lenta.children().first(),
             last = this.$lenta.children().last();
@@ -159,7 +160,7 @@ var Slider = (function(){
                 self.$lenta.css("left", "0px")
                     .append(first);
                 self.setCurrentItem(idNext);
-                self.$items = self.$lenta.children();                
+                self.$items = self.$lenta.children();
             });
         } else if (type === "backward") {
             this.$lenta.prepend( last.clone() ).css("left", -left).animate({left: 0}, 500, function(){
@@ -167,26 +168,17 @@ var Slider = (function(){
                 self.setCurrentItem(idNext);
                 self.$items = self.$lenta.children();
             });
-        }        
+        }
     };
 
     Slider.prototype.goByDots = function(idByDots) {
-        var self = this;
+        this.findNextItem(idByDots);
 
-        this.$items.each(function(i, elem){
-            var $elem = $(elem),
-                elemId = $elem.data("id");
-            if (idByDots === elemId) {
-                self.$nextItem  = $elem;
-                self.nextItemId = elemId;
-            }
-        });
-
-        var diff = Math.abs(this.currentItemId - idByDots),
+        var self = this,
+            diff = Math.abs(this.currentItemId - idByDots),
             width = this.$nextItem.width(),
             left = width * diff,
-            ind = self.$nextItem.index(),
-            afterCurrentId = this.itemsLength - idByDots,
+            ind = this.$nextItem.index(),
             itemsToggle = this.$lenta.children().slice(0, ind);
 
         if (idByDots > this.currentItemId) {
@@ -197,34 +189,24 @@ var Slider = (function(){
                 self.$items.push.apply(self.$items, itemsToggle);
             });
         } else {
-
             this.$lenta.append(itemsToggle).css("left", -left).animate({left: 0}, 500, function(){
-                self.$lenta.css("left", "0px");                    
+                self.$lenta.css("left", "0px");
                 self.setCurrentItem(idByDots);
                 self.$items.push.apply(self.$items, itemsToggle);
             });
-
         }
     }
 
     Slider.prototype.animateOpacity = function(idNext) {
-        var self = this;
         dotes.setCurrent(idNext);
+        this.findNextItem(idNext);
 
-        this.$items.each(function(i, elem){
-            var $elem = $(elem),
-                elemId = $elem.data("id");
-            if ( idNext === elemId) {
-                self.$nextItem  = $elem;
-                self.nextItemId = elemId;
-            }
-        });
+        var self = this,
+            left = this.$nextItem.position().left;
 
-        var left = this.$nextItem.position().left;
-        
         this.$currentItem.animate({
             "opacity": 0
-        }, 1000, function(){            
+        }, 500, function(){
             self.$currentItem.css("opacity", "1");
             self.$lenta.css("left", -left+"px");
             self.setCurrentItem(idNext);
@@ -284,7 +266,7 @@ var Dotes = (function() {
                 idByDots = $this.data("id");
 
             slider._options.animate === "opacity" ? slider.go(idByDots) : slider.goByDots(idByDots);
-            self.setCurrent(idByDots);   
+            self.setCurrent(idByDots);
         });
     };
 

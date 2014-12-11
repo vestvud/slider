@@ -7,7 +7,7 @@ var Slider = (function(){
     };
 
     function Slider(container, options) {
-        this._options = $.extend({}, defaults, options);
+        this.options = $.extend({}, defaults, options);
 
         this.container = container;
         this.$container = $(this.container);
@@ -40,22 +40,26 @@ var Slider = (function(){
         this.render();
         this.initHandlers();
 
-        //инициируем точки
-        dotes.init(this.$container, this.itemsLength);
+        this.options.dotes ? this.registerDotes(this.options.dotes) : this.dotes = null;
+    };
+
+    Slider.prototype.registerDotes = function(dotes) {
+        this.dotes = new Dotes(dotes.name, dotes.options);
+        this.dotes.init(this, this.$container, this.itemsLength);
     };
 
     //шаблон галереи
     Slider.prototype.render = function() {
-        var cssns = this._options.cssNamespace;
+        var cssns = this.options.cssNamespace;
 
         //оборачиваем каждый элемент слайдера
         this.$items.each(function(i, elem){
             var $this = $(elem);
-            $this.wrap("<div class='b-lenta__item j-sliderItem' data-id='" + i + "'></div>");
+            $this.wrap("<div class='b-lenta__item j-" + cssns + "Item' data-id='" + i + "'></div>");
         });
 
         var contentHtml = this.$container.html(),
-            tmpl = '<div class="b-' + cssns + '__content">' +
+            tmpl = '<div class="b-' + cssns + '__content j-' + cssns + '__content">' +
                 '<div class="b-lenta j-lenta">' +
                 contentHtml +
                 '</div>' +
@@ -68,19 +72,28 @@ var Slider = (function(){
             .append(tmpl);
 
         //переопределяем элементы слайдера
-        this.$items = this.$container.find(".j-sliderItem");
+        this.$items = this.$container.find(".j-" + cssns + "Item");
         this.$lenta = this.$container.find(".j-lenta");
         this.next = ".j-next";
         this.prev = ".j-prev";
 
         //назначаем текущий элемент
+        this.$container.width(this.options.size.width);
+        this.$container.height(this.options.size.height);
+
+        var lentaWidth = 0;
+        this.$items.each(function(i, elem){
+           var $this = $(this);
+           lentaWidth = lentaWidth + $this.outerWidth();
+        });
+        this.$lenta.width(lentaWidth + this.$items.width() );
         this.setCurrentItem(0);
     };
 
     //обработчики
     Slider.prototype.initHandlers = function(){
         var self = this,
-            ns = this._options.namespace;
+            ns = this.options.namespace;
 
         //инициализируем обработчики
         this.$container
@@ -140,7 +153,7 @@ var Slider = (function(){
     };
 
     Slider.prototype.animate = function(type, idNext) {
-        if (this._options.animate === "opacity") {
+        if (this.options.animate === "opacity") {
             this.animateOpacity(idNext);
         } else {
             this.animateFlipped(type, idNext);
@@ -153,7 +166,7 @@ var Slider = (function(){
             first = this.$lenta.children().first(),
             last = this.$lenta.children().last();
 
-        dotes.setCurrent(idNext);
+        if (this.dotes) this.dotes.setCurrent(idNext);
 
         if (type === "forward") {
             this.$lenta.animate({left: -left}, 500, function(){
@@ -198,7 +211,7 @@ var Slider = (function(){
     }
 
     Slider.prototype.animateOpacity = function(idNext) {
-        dotes.setCurrent(idNext);
+        if (this.dotes) this.dotes.setCurrent(idNext);
         this.findNextItem(idNext);
 
         var self = this,
@@ -224,54 +237,55 @@ var Dotes = (function() {
     };
 
     function Dotes(container, options){
-        this._options = $.extend({}, defaults, options);
+        this.options = $.extend({}, defaults, options);
 
         this.container = container;
         this.$container = null;
 
-        this.toggle = ".j-dotesItem";
+        this.toggle = ".j-" + this.options.namespace + "Item";
         this.$items = null;
         this.$currentItem = null;
         this.currentItemId = null;
     }
 
-    Dotes.prototype.init = function($wrapper, count) {
+    Dotes.prototype.init = function(slider, $wrapper, count) {
         this.render($wrapper, count);
-        this.initHandlers();
+        this.initHandlers(slider, $wrapper);
     };
 
     Dotes.prototype.render = function($wrapper, count) {
-        var cssns = this._options.cssNamespace,
+        var cssns = this.options.cssNamespace,
             items = "";
 
         for (var i = 0; i < count; i++) {
-            items = items + '<div class="b-dotes__item j-dotesItem" data-id="'+ i +'"></div>';
+            items = items + '<div class="b-dotes__wrapItem j-' + this.options.namespace + 'Item" data-id="'+ i +'"><div class="b-dotes__item"></div></div>';
         }
 
-        var tmpl = '<div class="b-' + cssns + ' j-' + cssns + '">' + items + '</div>';
+        var tmpl = '<div class="b-' + cssns + ' j-' + this.options.namespace + '">' + items + '</div>';
         $wrapper.append(tmpl);
 
         this.$container = $(this.container);
+
         this.$items = this.$container.find(this.toggle);
         this.setCurrent(0);
     };
 
-    Dotes.prototype.initHandlers = function() {
+    Dotes.prototype.initHandlers = function(slid, $wrapper) {
         var self = this,
-            ns = this._options.namespace;
+            ns = this.options.namespace;
 
-        this.$container.on("click." + ns, self.toggle, function(e){
+        $wrapper.on("click." + ns, self.toggle, function(e){
             e.preventDefault();
             var $this = $(this),
                 idByDots = $this.data("id");
 
-            slider._options.animate === "opacity" ? slider.go(idByDots) : slider.goByDots(idByDots);
+            slid.options.animate === "opacity" ? slid.go(idByDots) : slid.goByDots(idByDots);
             self.setCurrent(idByDots);
         });
     };
 
     Dotes.prototype.setCurrent = function(id) {
-        var cssns = this._options.cssNamespace,
+        var cssns = this.options.cssNamespace,
             self = this;
 
         this.currentItemId = id;
@@ -280,8 +294,8 @@ var Dotes = (function() {
                 idItem = $item.data("id");
             if ( idItem === id ) {
                 self.$currentItem = $item;
-                self.$items.removeClass("b-" + cssns + "__item_active");
-                self.$currentItem.addClass("b-" + cssns + "__item_active");
+                self.$items.children().removeClass("b-" + cssns + "__item_active");
+                self.$currentItem.children().addClass("b-" + cssns + "__item_active");
             }
         });
     };

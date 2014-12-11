@@ -42,11 +42,18 @@
 
     <script>
     	$(document).ready(function(){
-            dotes = new Dotes(".j-dotes");
             slider = new Slider(".j-slider", {
                 namespace: "slider",
                 cssNamespace: "slider",
-                animate: "flipped"
+                animate: "flipped",
+                dotes: {
+                    name: '.j-dotes',
+                    options: {
+                        namespace: "dotes",
+                        cssNamespace: "dotes"
+                    }
+                },
+                size: {"width": 726, "height": '100%'}
             });
         });
     </script>

@@ -1,4 +1,5 @@
-http://vestvud.github.io/slider/
+http://vestvud.github.io/slider/   
+просто слайдер 
 
 slider
 ======
